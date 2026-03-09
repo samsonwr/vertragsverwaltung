@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
-import { getDb } from '../database';
+import { getDb } from '../database.js';
 
 export const benutzerRouter = Router();
 

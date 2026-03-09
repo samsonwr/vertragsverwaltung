@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
-import { getDb } from '../database';
-import type { Vertrag, VertragFilter } from '../../shared/types';
+import { getDb } from '../database.js';
+import type { Vertrag, VertragFilter } from '../../shared/types.js';
 
 export const vertraegeRouter = Router();
 

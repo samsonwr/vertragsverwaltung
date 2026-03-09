@@ -1,4 +1,4 @@
-import { getDb } from './database';
+import { getDb } from './database.js';
 import { v4 as uuid } from 'uuid';
 
 const db = getDb();

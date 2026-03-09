@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { getDb } from './database';
-import { vertraegeRouter } from './routes/vertraege';
-import { ereignisseRouter } from './routes/ereignisse';
-import { historieRouter } from './routes/historie';
-import { dashboardRouter } from './routes/dashboard';
-import { benutzerRouter } from './routes/benutzer';
+import { getDb } from './database.js';
+import { vertraegeRouter } from './routes/vertraege.js';
+import { ereignisseRouter } from './routes/ereignisse.js';
+import { historieRouter } from './routes/historie.js';
+import { dashboardRouter } from './routes/dashboard.js';
+import { benutzerRouter } from './routes/benutzer.js';
 
 const app = express();
 const PORT = 3001;
