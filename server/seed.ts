@@ -136,10 +136,15 @@ for (const v of vertraege) {
   // Laufzeitende
   insertEreignis.run(uuid(), v.id, 'laufzeitende', 'Laufzeitende', v.vertragsende, 30, v.verantwortlicher, now, now);
 
-  // Kündigungsfrist
+  // Kündigungsfrist (subtractMonths clamped to last day of month)
   const endeDate = new Date(v.vertragsende);
-  endeDate.setMonth(endeDate.getMonth() - v.kuendigungsfrist_monate);
-  insertEreignis.run(uuid(), v.id, 'kuendigungsfrist', 'Kündigungsfrist', endeDate.toISOString().split('T')[0], 30, v.verantwortlicher, now, now);
+  const targetMonth = endeDate.getMonth() - v.kuendigungsfrist_monate;
+  const kuendigungDate = new Date(endeDate);
+  kuendigungDate.setMonth(targetMonth);
+  if (kuendigungDate.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+    kuendigungDate.setDate(0);
+  }
+  insertEreignis.run(uuid(), v.id, 'kuendigungsfrist', 'Kündigungsfrist', kuendigungDate.toISOString().split('T')[0], 30, v.verantwortlicher, now, now);
 
   // Review for some contracts
   if (v.status === 'aktiv') {

@@ -5,6 +5,19 @@ import type { Vertrag, VertragFilter } from '../../shared/types.js';
 
 export const vertraegeRouter = Router();
 
+/** Subtract months from a date, clamping to last day of month if needed */
+function subtractMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  const targetMonth = result.getMonth() - months;
+  result.setMonth(targetMonth);
+  // If setMonth overflowed (e.g. May 31 - 3 months → Mar 3 instead of Feb 28),
+  // set to last day of the intended month
+  if (result.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+    result.setDate(0); // last day of previous month
+  }
+  return result;
+}
+
 // GET /api/vertraege - Liste mit Filtern
 vertraegeRouter.get('/', (req, res) => {
   const db = getDb();
@@ -155,8 +168,7 @@ vertraegeRouter.post('/', (req, res) => {
 
     // Kündigungsfrist
     const kuendigungMonths = v.kuendigungsfrist_monate || 3;
-    const kuendigungDate = new Date(endeDate);
-    kuendigungDate.setMonth(kuendigungDate.getMonth() - kuendigungMonths);
+    const kuendigungDate = subtractMonths(endeDate, kuendigungMonths);
     const kuendigungDateStr = kuendigungDate.toISOString().split('T')[0];
 
     const ereignisKuendigung = uuid();
@@ -244,8 +256,8 @@ vertraegeRouter.put('/:id', (req, res) => {
     const ende = v.vertragsende || existing.vertragsende;
     if (ende) {
       const endeDate = new Date(ende);
-      endeDate.setMonth(endeDate.getMonth() - v.kuendigungsfrist_monate);
-      const newDateStr = endeDate.toISOString().split('T')[0];
+      const kuendigungDate = subtractMonths(endeDate, v.kuendigungsfrist_monate);
+      const newDateStr = kuendigungDate.toISOString().split('T')[0];
       db.prepare(`
         UPDATE ereignis SET datum = ?, geaendert_am = ?
         WHERE vertrag_id = ? AND typ = 'kuendigungsfrist' AND status = 'offen'
