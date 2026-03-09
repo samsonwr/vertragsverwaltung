@@ -8,6 +8,7 @@ import { ereignisseRouter } from './routes/ereignisse.js';
 import { historieRouter } from './routes/historie.js';
 import { dashboardRouter } from './routes/dashboard.js';
 import { benutzerRouter } from './routes/benutzer.js';
+import { exportImportRouter } from './routes/export-import.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,7 +17,7 @@ const app = express();
 const PORT = 3001;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Initialize DB
 getDb();
@@ -27,6 +28,7 @@ app.use('/api/ereignisse', ereignisseRouter);
 app.use('/api/historie', historieRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/benutzer', benutzerRouter);
+app.use('/api', exportImportRouter);
 
 // Serve frontend
 const distPath = path.join(__dirname, '..', '..', 'dist');

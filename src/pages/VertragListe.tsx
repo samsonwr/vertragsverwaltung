@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Plus, Search, Download } from 'lucide-react'
+import { Plus, Search, Download, Upload, Database } from 'lucide-react'
 import { api } from '../api'
 import { StatusBadge, ArtBadge } from '../components/StatusBadge'
 import { formatDate, formatCurrency, daysUntil } from '../utils'
@@ -9,6 +9,43 @@ export default function VertragListe() {
   const [vertraege, setVertraege] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const [importStatus, setImportStatus] = useState<string | null>(null)
+
+  const handleDbExport = async () => {
+    try {
+      await api.exportDb()
+    } catch {
+      alert('Export fehlgeschlagen')
+    }
+  }
+
+  const handleDbImport = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+      try {
+        const text = await file.text()
+        const data = JSON.parse(text)
+        const result = await api.importDb(data)
+        const s = result.stats
+        setImportStatus(
+          `Import erfolgreich: ${s.vertraege.eingefuegt} Verträge, ${s.ereignisse.eingefuegt} Ereignisse, ${s.historie.eingefuegt} Historie-Einträge eingefügt. ` +
+          `${s.vertraege.uebersprungen + s.ereignisse.uebersprungen + s.historie.uebersprungen} bereits vorhanden.`
+        )
+        // Refresh list
+        const params: Record<string, string> = {}
+        Object.entries(filter).forEach(([k, v]) => { if (v) params[k] = v })
+        api.getVertraege(params).then(setVertraege)
+      } catch (err: any) {
+        alert(`Import fehlgeschlagen: ${err.message}`)
+      }
+    }
+    input.click()
+  }
 
   const [filter, setFilter] = useState({
     suche: searchParams.get('suche') || '',
@@ -45,6 +82,12 @@ export default function VertragListe() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-800">Verträge</h2>
         <div className="flex gap-2">
+          <button onClick={handleDbExport} className="flex items-center gap-2 border border-emerald-300 text-emerald-700 px-4 py-2 rounded-lg hover:bg-emerald-50 text-sm font-medium">
+            <Database className="w-4 h-4" /> DB Export
+          </button>
+          <button onClick={handleDbImport} className="flex items-center gap-2 border border-amber-300 text-amber-700 px-4 py-2 rounded-lg hover:bg-amber-50 text-sm font-medium">
+            <Upload className="w-4 h-4" /> DB Import
+          </button>
           <button onClick={handleExport} className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium">
             <Download className="w-4 h-4" /> Export CSV
           </button>
@@ -53,6 +96,13 @@ export default function VertragListe() {
           </Link>
         </div>
       </div>
+
+      {importStatus && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center justify-between">
+          <span className="text-sm text-emerald-800">{importStatus}</span>
+          <button onClick={() => setImportStatus(null)} className="text-emerald-600 hover:text-emerald-800 text-sm font-medium">OK</button>
+        </div>
+      )}
 
       {/* Filter */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">

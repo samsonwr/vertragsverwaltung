@@ -45,4 +45,19 @@ export const api = {
   // Benutzer
   getBenutzer: () => request<any[]>('/benutzer'),
   getAktuellerBenutzer: () => request<any>('/benutzer/aktuell'),
+
+  // Export/Import
+  exportDb: async () => {
+    const res = await fetch(`${BASE}/export`);
+    if (!res.ok) throw new Error('Export fehlgeschlagen');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.download = `vertragsverwaltung-export-${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+  importDb: (data: any) => request<any>('/import', { method: 'POST', body: JSON.stringify(data) }),
 };
