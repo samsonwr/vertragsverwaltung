@@ -29,7 +29,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/benutzer', benutzerRouter);
 
 // Serve frontend
-const distPath = path.join(__dirname, '..', 'dist');
+const distPath = path.join(__dirname, '..', '..', 'dist');
 app.use(express.static(distPath));
 app.get('*', (_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
